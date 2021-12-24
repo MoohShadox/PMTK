@@ -49,6 +49,12 @@ class AdditiveUtility:
             n_v = tuple(sorted(key))
             if n_v in self.theta:
                 self.theta_values[n_v] = val
+            else:
+                self.theta.append(tuple(sorted(key)))
+                self.theta_values[n_v] = val
+
+    def __call__(self, x):
+        return self.evaluate(x)
 
     def evaluate(self, x_s):
         """

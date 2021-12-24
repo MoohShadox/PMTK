@@ -2,7 +2,6 @@
 @Author: Ouaguenouni Mohamed
 """
 
-
 class Preferences:
     """
     This class encapsulates different representations (sparse, matricial) of
@@ -40,7 +39,7 @@ class Preferences:
         """
         s_1 = self.__add_subsets(s_1)
         s_2 = self.__add_subsets(s_2)
-        t_1 = sorted([s_1, s_2])
+        t_1 = [s_1, s_2]
         if t_1 not in self.preferred:
             self.preferred.append(t_1)
 
@@ -50,7 +49,7 @@ class Preferences:
         """
         s_1 = self.__add_subsets(s_1)
         s_2 = self.__add_subsets(s_2)
-        t_1 = sorted([s_1, s_2])
+        t_1 = [s_1, s_2]
         if t_1 not in self.indifferent:
             self.indifferent.append(t_1)
 
@@ -117,6 +116,26 @@ class Preferences:
             r_ch += f"{s_1} = {s_2} \n"
         return r_ch
 
+    def __ge__(self, other):
+        for s_1 in self.preferred:
+            if s_1 not in other.preferred:
+                return False
+        for s_1 in self.indifferent:
+            if s_1 not in other.indifferent:
+                return False
+        return True
+
+    def __eq__(self, other):
+        return other >= self and self >= other
+
+    def __gt__(self, other):
+        return self >= other and not self == other
+
+    def __le__(self, other):
+        return other >= self
+
+    def __lt__(self, other):
+        return other >= self and not other == self
 
 if __name__ == "__main__":
     pass
