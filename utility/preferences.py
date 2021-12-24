@@ -16,7 +16,7 @@ class Preferences:
     """
 
     def __init__(self, items):
-        self.alternatives = items
+        self.items = items
         self.preferred = []
         self.preferred_or_indifferent = []
         self.indifferent = []
@@ -27,7 +27,7 @@ class Preferences:
         """
         Used to maintain a list of the subsets concerned by the preferences.
         """
-        subset = [i for i in subset if i in self.alternatives]
+        subset = [i for i in subset if i in self.items]
         subset = tuple(sorted(set(subset)))
         if subset not in self.subsets:
             self.subsets.append(subset)
@@ -117,11 +117,11 @@ class Preferences:
         return r_ch
 
     def __ge__(self, other):
-        for s_1 in self.preferred:
-            if s_1 not in other.preferred:
+        for s_1 in other.preferred:
+            if s_1 not in self.preferred:
                 return False
-        for s_1 in self.indifferent:
-            if s_1 not in other.indifferent:
+        for s_1 in other.indifferent:
+            if s_1 not in self.indifferent:
                 return False
         return True
 
@@ -136,6 +136,18 @@ class Preferences:
 
     def __lt__(self, other):
         return other >= self and not other == self
+
+    def __sub__(self, other):
+        prf = Preferences(self.items)
+        for s in self.preferred:
+            if s not in other.preferred:
+                prf.preferred.append(s)
+        for s in self.indifferent:
+            if s not in other.indifferent:
+                prf.indifferent.append(s)
+        return prf
+
+
 
 if __name__ == "__main__":
     pass

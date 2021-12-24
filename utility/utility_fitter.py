@@ -10,6 +10,7 @@ import numpy as np
 from preferences_sampler import sample_preferences_from_order, get_all_k_sets
 from samplers import sample_subsets
 from additive_utility import AdditiveUtility
+import time
 
 
 class Utility_Fitter:
@@ -20,7 +21,7 @@ class Utility_Fitter:
         self.strict_preferences = []
         self.large_preferences = []
         self.indifferences = []
-        self.epsilon = 1e-3
+        self.epsilon = 1e-1
         self.vars_ub = 1
         self.vars_lb = -1
 
@@ -39,6 +40,13 @@ class Utility_Fitter:
                 vector[self.model.index(subset)] += 1
             if all(s in y for s in subset):
                 vector[self.model.index(subset)] -= 1
+        return vector
+
+    def vectorize_subset(self, x):
+        vector = np.zeros(len(self.model))
+        for subset in self.model:
+            if all(s in x for s in subset):
+                vector[self.model.index(subset)] += 1
         return vector
 
     def add_subsets_to_model(self, **subsets):
@@ -63,12 +71,46 @@ class Utility_Fitter:
         self.indifferences = preferences.indifferent
         return self
 
+    def __subsets_matrix(self):
+        vectors = []
+        for x,y in self.strict_preferences:
+            print("x:", x ," --> ", self.vectorize_subset(x))
+            print("y:",y ," --> ", self.vectorize_subset(y))
+            x_v = list(self.vectorize_subset(x))
+            y_v = list(self.vectorize_subset(y))
+            if x_v not in vectors:
+                vectors.append(x_v)
+            if y_v not in vectors:
+                vectors.append(y_v)
+
+        for x,y in self.large_preferences:
+            print("x:", x ," --> ", self.vectorize_subset(x))
+            print("y:",y ," --> ", self.vectorize_subset(y))
+            x_v = list(self.vectorize_subset(x))
+            y_v = list(self.vectorize_subset(y))
+            if x_v not in vectors:
+                vectors.append(x_v)
+            if y_v not in vectors:
+                vectors.append(y_v)
+
+        for x,y in self.indifferences:
+            x_v = list(self.vectorize_subset(x))
+            y_v = list(self.vectorize_subset(y))
+            print("x:", x ," --> ", self.vectorize_subset(x))
+            print("y:",y ," --> ", self.vectorize_subset(y))
+
+            if x_v not in vectors:
+                vectors.append(x_v)
+            if y_v not in vectors:
+                vectors.append(y_v)
+        print("Vectors=====")
+        print(vectors)
+        print("Vectors=====")
+        return vectors
+
     def build_vars(self):
         variables = cp.Variable(len(self.model))
         self.__vars = variables
-        cst_compacity_l = variables >= self.vars_lb
-        cst_compacity_h = variables <= self.vars_ub
-        self.__cst = [cst_compacity_h, cst_compacity_l]
         return self
 
     def set_model(self, model):
@@ -76,13 +118,10 @@ class Utility_Fitter:
         return self
 
     def build_preferences_cst(self):
-
         if(self.__vars is None):
             print("Error: Did'nt build the variables")
-
         cst_l = []
         self.__gap_vars = cp.Variable(len(self.strict_preferences))
-
         for i, (x, y) in enumerate(self.strict_preferences):
             cst_l += [self.vectorize_preference(x, y) @ self.__vars >= self.__gap_vars[i]]
         for i, (x, y) in enumerate(self.large_preferences):
@@ -94,7 +133,11 @@ class Utility_Fitter:
             print("Warning: no preferences found!")
 
         cst_l += [self.__gap_vars >= self.epsilon]
-
+        #cst_l += [self.__gap_vars <= 1]
+        for m in self.model:
+            v = self.vectorize_subset(m) 
+            cst_l.append(v @ self.__vars <= 1)
+            cst_l.append(v @ self.__vars >= -1)
         self.__cst = cst_l
         return self
 
@@ -105,6 +148,7 @@ class Utility_Fitter:
         self.__last_constraints_set = cst_l
         self.__last_objectif = obj
         self.__last_objectif_value = self.prob.value
+        print(self.prob)
         return self.prob
 
     def get_min_params_utility(self):
@@ -122,15 +166,10 @@ class Utility_Fitter:
 
     def solve_for_linear(self, vector):
         obj = cp.Maximize(self.__vars @ vector)
-        self.solve(self.cst, obj)
-        pass
+        self.__solve(self.cst, obj)
+        return self
 
-    def then(self, f, *args, **kwargs):
-        self.__cst = self.__last_constraints_set
-        self.__cst += [self.__last_objectif == self.__last_objectif_value]
-        return f(*args, **kwargs)
-
-    def get_problem(self):
+    def problem(self):
         return self.__prob
 
     def get_utility(self):
@@ -140,25 +179,43 @@ class Utility_Fitter:
         uf.set_theta_values(*kv)
         return uf
 
-    def get_max_theta_utility(self):
-        pass
+    def get_most_discriminant_utility(self):
+        if self.__cst is None or len(self.__cst) == 0:
+            print("Warning: no preferences constraints! ")
+            return None
+        obj = cp.Maximize(sum(self.__gap_vars))
+        self.__solve(self.__cst, obj)
+        return self
 
     def get_min_additivity_utility(self):
-        pass
+        obj = cp.Maximize(self.__vars @ vector)
+        self.solve(self.cst, obj)
+        return self
 
+    def run(self, f, *args, **kwargs):
+        result = f(*args, **kwargs)
+        return result
+
+    def then(self, f, *args, **kwargs):
+        self.__cst = self.__last_constraints_set
+        self.__cst += [self.__last_objectif == self.__last_objectif_value]
+        return f(*args, **kwargs)
 
 if __name__ == "__main__":
-    items = np.arange(4)
-    pref = sample_preferences_from_order(items, 3)
-    model = get_all_k_sets(items, 3)
-    UF = Utility_Fitter(items)
-    UF.set_model(model).set_preferences(pref).build_vars().build_preferences_cst().get_min_params_utility()
-    f = UF.get_utility()
-    R = f.compute_relation(pref.subsets)
-    print(R >= pref)
-    print("R:", R)
-    print()
-    print()
-    print("Pref:", pref)
-    print()
-    print()
+    for i in range(20):
+        items = np.arange(3)
+        pref = sample_preferences_from_order(items, 1000)
+        print("preferences set:", pref)
+        model = get_all_k_sets(items, 2)
+        print("model: ", model)
+        UF = Utility_Fitter(items)
+        UF.set_model(model).set_preferences(pref).build_vars().build_preferences_cst().run(UF.get_most_discriminant_utility)
+        f = UF.get_utility()
+        R = f.compute_relation(pref.subsets)
+        print("R - pref:", pref-R)
+        if not R >= pref:
+            n = input("...")
+            for x,y in (pref - R).indifferent:
+                print(x," = ",y) 
+                print("f(x)=", f(x))
+                print("f(y)=", f(y))

@@ -86,9 +86,9 @@ class AdditiveUtility:
                 if s_i != s_j:
                     e_1 = self.evaluate(s_i)
                     e_2 = self.evaluate(s_j)
-                    if e_1 > e_2:
+                    if e_1 >= e_2+1e-8:
                         pref.add_preference(s_i, s_j)
-                    elif e_2 > e_1:
+                    elif e_2 >= e_1+1e-8:
                         pref.add_preference(s_i, s_j)
                     else:
                         pref.add_indifference(s_i, s_j)
