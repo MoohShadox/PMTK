@@ -203,10 +203,10 @@ class Utility_Fitter:
 
 if __name__ == "__main__":
     for i in range(20):
-        items = np.arange(3)
-        pref = sample_preferences_from_order(items, 1000)
+        items = np.arange(6)
+        pref = sample_preferences_from_order(items, 100)
         print("preferences set:", pref)
-        model = get_all_k_sets(items, 2)
+        model = get_all_k_sets(items, 4)
         print("model: ", model)
         UF = Utility_Fitter(items)
         UF.set_model(model).set_preferences(pref).build_vars().build_preferences_cst().run(UF.get_most_discriminant_utility)
