@@ -37,7 +37,6 @@ def sample_subsets(items, size=None, n_subsets=1):
     while len(subsets) < n_subsets and len(subsets) < 2**(len(items)-1):
         subset = sample_subset(items)
         if subset not in subsets:
-            print("adding subset", subset)
             subsets.append(subset)
     return subsets
 

@@ -1,6 +1,5 @@
-"""
-@Author: Ouaguenouni Mohamed
-"""
+""" @Author: Ouaguenouni Mohamed """ 
+import numpy as np
 
 class Preferences:
     """
@@ -22,6 +21,33 @@ class Preferences:
         self.indifferent = []
         self.subsets = []
         self.relation_matrix = None
+
+    def vectorize_subset(self, x, model):
+        vector = np.zeros(len(model))
+        for subset in model:
+            if all(s in x for s in subset):
+                vector[model.index(subset)] += 1
+        return vector
+
+    def vectorize_preference(self, x, y, model):
+        vector = self.vectorize_subset(x, model) - self.vectorize_subset(y, model)
+        return vector
+
+    def get_matrix(self, model, relation_set):
+        vectors = []
+        for x,y in relation_set:
+            v = self.vectorize_preference(x,y,model)
+            vectors.append(v.astype(float))
+        vectors = np.array(vectors).astype(float)
+        return vectors
+
+    def __getitem__(self, index):
+        all_prefs = self.preferred + self.indifferent
+        return all_prefs[index]
+
+    def __set_item__(self, index, item):
+        all_prefs = self.preferred + self.indifferent
+        all_prefs[index] = item
 
     def __add_subsets(self, subset):
         """
@@ -107,6 +133,10 @@ class Preferences:
            and (s_2, s_1) not in self.preferred:
             return 1
         return 0
+
+    def __len__(self):
+        return len(self.indifferent) + len(self.preferred)
+        pass
 
     def __str__(self):
         r_ch = "Preference relation : \n"

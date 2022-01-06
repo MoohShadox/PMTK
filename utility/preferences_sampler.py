@@ -19,6 +19,28 @@ def get_all_k_sets(items, k):
         subsets = subsets + list(k_subset)
     return subsets
 
+def sample_preferences_from_complete_order(items, indifference_rate=0.1):
+    """
+    Sample a complete order on a number of subsets and an associated preferences set.
+    Params:
+        -items: Set of alternatives among which the subset are sampled.
+        -indifference_rate: Ratio of indifferent relations between the subsets
+        of the order.
+    """
+    subsets = []
+    for k in range(1, len(items)-1):
+        subsets += list(itertools.combinations(items, k))
+    random.shuffle(subsets)
+    prefs = Preferences(items)
+    for i, _ in enumerate(subsets):
+        if random.random() <= indifference_rate and i<len(subsets)-1:
+            prefs.add_indifference(subsets[i], subsets[i+1])
+            continue
+        for j in range(i+1, len(subsets)):
+            prefs.add_preference(subsets[i], subsets[j])
+    return prefs
+
+
 
 def sample_preferences_from_order(items, n_relations, indifference_rate=0.1):
     """
@@ -33,7 +55,6 @@ def sample_preferences_from_order(items, n_relations, indifference_rate=0.1):
     subsets = sample_subsets(items, n_subsets=n_subsets)
     random.shuffle(subsets)
     prefs = Preferences(items)
-    print(subsets)
     for i, _ in enumerate(subsets):
         if random.random() <= indifference_rate and i<len(subsets)-1:
             prefs.add_indifference(subsets[i], subsets[i+1])
