@@ -87,9 +87,9 @@ class Preferences:
                 -1 if the opposite is true
                 0 if neither case is true.
         """
-        if (s_1, s_2) in self.preferred:
+        if [s_1, s_2] in self.preferred:
             return 1
-        if (s_2, s_1) in self.preferred:
+        if [s_2, s_1] in self.preferred:
             return -1
         return 0
 
@@ -101,9 +101,9 @@ class Preferences:
                 -1 if the opposite is true
                 0 if neither case is true.
         """
-        if (s_1, s_2) in self.preferred or (s_1, s_2) in self.indifferent:
+        if [s_1, s_2] in self.preferred or [s_1, s_2] in self.indifferent:
             return 1
-        if (s_2, s_1) in self.preferred or (s_2, s_1) in self.indifferent:
+        if [s_2, s_1] in self.preferred or [s_2, s_1] in self.indifferent:
             return -1
         return 0
 
@@ -115,7 +115,7 @@ class Preferences:
                     of one alternative over the other
                 0:  If not.
         """
-        if (s_1, s_2) in self.indifferent or (s_2, s_1) in self.indifferent:
+        if [s_1, s_2] in self.indifferent or [s_2, s_1] in self.indifferent:
             return 1
         return 0
 
@@ -127,10 +127,10 @@ class Preferences:
                     indifference nor with the preference
                 0:  If we can.
         """
-        if (s_1, s_2) not in self.preferred \
-           and (s_1, s_2) not in self.indifferent \
-           and (s_2, s_1) not in self.indifferent \
-           and (s_2, s_1) not in self.preferred:
+        if [s_1, s_2] not in self.preferred \
+           and [s_1, s_2] not in self.indifferent \
+           and [s_2, s_1] not in self.indifferent \
+           and [s_2, s_1] not in self.preferred:
             return 1
         return 0
 

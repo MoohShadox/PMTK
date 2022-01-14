@@ -19,16 +19,22 @@ class Connivence_Solver:
     def check_connivences(self, min_size = 1):
         print("Model size:", len(self.model))
         print("Number of préférences:", len(self.preferences))
+
         variables = cp.Variable(len(self.preferences), integer = True)
+
         mat = self.preferences.get_matrix(self.model, self.preferences.preferred)
+        sizes_pref = [len(x[0]) + len(x[1]) for x in self.preferences.preferred]
+
         mat2 = self.preferences.get_matrix(self.model, self.preferences.indifferent)
+        sizes_pref += [len(x[0]) + len(x[1]) for x in self.preferences.indifferent]
+
         if len(mat2.shape) > 1:
             mat = np.vstack([mat, mat2]).astype(float)
         #print("Constraints matrix", mat.shape)
         mat = mat.T
         #print("Mat shape:", mat.shape)
         #print("Objective:", sum(variables))
-        obj = cp.Minimize(sum(variables))
+        obj = cp.Minimize( sum( [ variables[i]*(sizes_pref[i] + 1000) for i in range(len(self.preferences))] ) )
         problem = cp.Problem(obj, [variables >= 0, sum(variables) >= min_size, mat.astype(float) @ variables == 0.0] )
         p = problem.solve()
         print(problem.status)

@@ -9,6 +9,8 @@ from preferences import Preferences
 from samplers import sample_subsets
 
 
+EMPTY_SET = tuple([])
+
 def get_all_k_sets(items, k):
     """
     get all the subsets of size less or equal than k and that are included in the set of items.
@@ -19,7 +21,7 @@ def get_all_k_sets(items, k):
         subsets = subsets + list(k_subset)
     return subsets
 
-def sample_preferences_from_complete_order(items, indifference_rate=0.1):
+def sample_preferences_from_complete_order(items, indifference_rate=0.1, empty = True):
     """
     Sample a complete order on a number of subsets and an associated preferences set.
     Params:
@@ -30,6 +32,7 @@ def sample_preferences_from_complete_order(items, indifference_rate=0.1):
     subsets = []
     for k in range(1, len(items)-1):
         subsets += list(itertools.combinations(items, k))
+    subsets += [EMPTY_SET]
     random.shuffle(subsets)
     prefs = Preferences(items)
     for i, _ in enumerate(subsets):
@@ -42,7 +45,7 @@ def sample_preferences_from_complete_order(items, indifference_rate=0.1):
 
 
 
-def sample_preferences_from_order(items, n_relations, indifference_rate=0.1):
+def sample_preferences_from_order(items, n_relations, indifference_rate=0.1, empty = True):
     """
     Sample an order on a number of subsets and an associated preferences set.
     Params:
@@ -53,6 +56,7 @@ def sample_preferences_from_order(items, n_relations, indifference_rate=0.1):
     """
     n_subsets = int((1/2)*(math.sqrt(8*n_relations+1)+1))
     subsets = sample_subsets(items, n_subsets=n_subsets)
+    subsets += [tuple([])]
     random.shuffle(subsets)
     prefs = Preferences(items)
     for i, _ in enumerate(subsets):

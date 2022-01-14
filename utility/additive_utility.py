@@ -68,6 +68,8 @@ class AdditiveUtility:
                 evaluate([2]) = 5
                 evaluate([1,2,3]) = 5 + 2 + 1 = 8
         """
+        if len(x_s) == 0:
+            return 0
         cpt = 0
         for i in self.theta:
             if all(j in x_s for j in i):
@@ -75,12 +77,13 @@ class AdditiveUtility:
                     cpt += self.theta_values[i]
         return cpt
 
-    def compute_relation(self, subsets):
+    def compute_relation(self, subsets, add_empty = True):
         """
         Given a subset of elements return the set of all the existant
         comparison relations.
         """
         pref = Preferences(self.alternatives)
+        subsets += [tuple([])]
         for s_i in subsets:
             for s_j in subsets:
                 if s_i != s_j:
