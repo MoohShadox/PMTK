@@ -56,6 +56,13 @@ class AdditiveUtility:
     def __call__(self, x):
         return self.evaluate(x)
 
+    def __str__(self):
+        ch = ""
+        ch += "Model: " + str(self.theta) + "\n"
+        for k in self.theta_values:
+            ch += f"{k}: {self.theta_values[k]} \n"
+        return ch
+
     def evaluate(self, x_s):
         """
         Evaluates the utility of a set of alternatives x by summing the values
