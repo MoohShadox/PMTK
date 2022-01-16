@@ -5,21 +5,8 @@ import math
 import itertools
 import random
 import numpy as np
-from preferences import Preferences
-from samplers import sample_subsets
-
-
-EMPTY_SET = tuple([])
-
-def get_all_k_sets(items, k):
-    """
-    get all the subsets of size less or equal than k and that are included in the set of items.
-    """
-    subsets = []
-    for i in range(1, k+1):
-        k_subset = itertools.combinations(items, i)
-        subsets = subsets + list(k_subset)
-    return subsets
+from PMTK.preferences import Preferences, EMPTY_SET
+from PMTK.random.subset_samplers import sample_subsets
 
 def sample_preferences_from_complete_order(items, indifference_rate=0.1, empty = True):
     """
@@ -66,10 +53,3 @@ def sample_preferences_from_order(items, n_relations, indifference_rate=0.1, emp
         for j in range(i+1, len(subsets)):
             prefs.add_preference(subsets[i], subsets[j])
     return prefs
-
-
-if __name__ == "__main__":
-    it = np.arange(10)
-    L = get_all_k_sets(it, 2)
-    print(L)
-

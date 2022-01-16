@@ -7,11 +7,12 @@ or to test the validity of an hypothesis on the full polyhedron.
 """
 import cvxpy as cp
 import numpy as np
-from preferences_sampler import sample_preferences_from_order, get_all_k_sets
-from samplers import sample_subsets
-from additive_utility import AdditiveUtility
 import time
-from preferences import Preferences
+from PMTK.random.preferences_sampler import sample_preferences_from_order
+from PMTK.utils import get_all_k_sets
+from PMTK.random.subset_samplers import sample_subsets
+from PMTK.utility.additive_utility import AdditiveUtility
+from PMTK.preferences import Preferences
 
 
 

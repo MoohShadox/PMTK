@@ -1,7 +1,7 @@
 """
 @Author: Ouaguenouni Mohamed
 """
-from preferences import Preferences
+from PMTK.preferences import Preferences
 
 
 class AdditiveUtility:

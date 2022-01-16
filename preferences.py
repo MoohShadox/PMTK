@@ -1,6 +1,8 @@
 """ @Author: Ouaguenouni Mohamed """ 
 import numpy as np
 
+EMPTY_SET = tuple([])
+
 class Preferences:
     """
     This class encapsulates different representations (sparse, matricial) of
