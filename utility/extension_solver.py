@@ -59,7 +59,7 @@ class Random_Extension_Solver(Extension_Solver):
 class Smallest_Extension_Solver(Extension_Solver):
     def select_candidates(self, connivent):
         I = get_k_candidates(connivent, 1)
-        for i in range(1, len(I)):
+        for i in range(1, len(I) + 1):
             L = [S for S in get_k_candidates(connivent, i) if not S in self.model]
             if len(L):
                 random.shuffle(L)
