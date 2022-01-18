@@ -30,7 +30,6 @@ class Extension_Solver:
 
     def extend(self, verbose = True):
         while(True):
-            print("==============")
             CS = Connivence_Solver(self.preferences, self.model)
             connivent = CS.check_connivences()
             if connivent is None:
