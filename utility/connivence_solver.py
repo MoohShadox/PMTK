@@ -18,8 +18,8 @@ class Connivence_Solver:
         return self
 
     def check_connivences(self, min_size = 1):
-        print("Model size:", len(self.model))
-        print("Number of préférences:", len(self.preferences))
+        #print("Model size:", len(self.model))
+        #print("Number of préférences:", len(self.preferences))
 
         variables = cp.Variable(len(self.preferences), integer = True)
 
