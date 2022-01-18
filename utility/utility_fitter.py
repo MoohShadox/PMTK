@@ -81,7 +81,7 @@ class Utility_Fitter:
 
     def __solve(self, cst_l, obj):
         self.prob = cp.Problem(obj, cst_l)
-        self.prob.solve(solver="GLPK", verbosity = False, glpk = {"msg_level": "GLPK_MSG_OFF"})
+        self.prob.solve()
         # We save the lines and columns of the last solved PL.
         self.__last_constraints_set = cst_l
         self.__last_objectif = obj
@@ -101,12 +101,12 @@ class Utility_Fitter:
         self.__solve(cst_l, obj)
         return self
 
-    def regrets_matrix(self, subsets):
+    def regrets_matrix(self, subsets, verbose = False):
         MPRS = np.zeros((len(subsets), len(subsets)))
         for A in subsets:
             for B in subsets:
-                MPRS[subsets.index(A),subsets.index(B)] = self.compute_MPR(A,B)
-                MPRS[subsets.index(B) ,subsets.index(A)] = self.compute_MPR(B,A)
+                MPRS[subsets.index(A),subsets.index(B)] = self.compute_MPR(A,B, verbose)
+                MPRS[subsets.index(B) ,subsets.index(A)] = self.compute_MPR(B,A, verbose)
         return MPRS
 
     def get_robust_preferences(self, subsets):
@@ -146,10 +146,12 @@ class Utility_Fitter:
     def get_min_additivity_utility(self):
         pass
 
-    def compute_MPR(self, x, y):
+    def compute_MPR(self, x, y, verbose = False):
         exp = self.preferences.vectorize_subset(y, self.model) @ self.__vars - self.preferences.vectorize_subset(x, self.model) @ self.__vars
         obj = cp.Maximize(exp)
         self.__solve(self.__cst, obj)
+        if verbose:
+            print(f"MPR({x}, {y}) = {self.__last_objectif_value}") 
         return self.__last_objectif_value
 
     def compute_MMR(self, x):

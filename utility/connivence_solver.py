@@ -1,7 +1,7 @@
 import cvxpy as cp
 import numpy as np
 from PMTK.random.preferences_sampler import sample_preferences_from_order, sample_preferences_from_complete_order
-from PMTK.utils import get_all_k_sets
+from PMTK.utils import *
 from PMTK.random.subset_samplers import sample_subsets
 from PMTK.utility.utility_fitter import Utility_Fitter
 import time
