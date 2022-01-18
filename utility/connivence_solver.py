@@ -38,8 +38,8 @@ class Connivence_Solver:
         obj = cp.Minimize( sum( [ variables[i]*(sizes_pref[i] + 1000) for i in range(len(self.preferences))] ) )
         problem = cp.Problem(obj, [variables >= 0, sum(variables) >= min_size, mat.astype(float) @ variables == 0.0] )
         p = problem.solve()
-        print(problem.status)
-        print(problem.value)
+        #print(problem.status)
+        #print(problem.value)
         if problem.status == cp.INFEASIBLE:
             return None
         connivent = []
