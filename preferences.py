@@ -51,6 +51,17 @@ class Preferences:
         all_prefs = self.preferred + self.indifferent
         all_prefs[index] = item
 
+    def contradictions(self, other):
+        contr = []
+        for x,y in self.preferred:
+            if y,x in other.preferred:
+                contr.append((x,y))
+        for x,y in self.indifferent:
+            if not x,y in other.indifferent:
+                contr.append((x,y))
+        return contr
+
+
     def __add_subsets(self, subset):
         """
         Used to maintain a list of the subsets concerned by the preferences.
