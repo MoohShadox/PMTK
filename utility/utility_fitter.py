@@ -166,6 +166,4 @@ class Utility_Fitter:
     def then(self, f, *args, **kwargs):
         self.__cst = self.__last_constraints_set
         self.__cst += [self.__last_objectif == self.__last_objectif_value]
-        return f(*args, **kwargs)
-
-
+        return self.run(f, *args, **kwargs)

@@ -20,10 +20,6 @@ class AdditiveUtility:
         self.alternatives = set(items)
         self.theta_values = {}
 
-    def __str__(self):
-        for x in self.theta_values:
-            print(f"u({x}) = {self.theta_values[x]}")
-
     def add_to_theta(self, *new_t):
         """
         This function add a sequences of sets to theta.
@@ -88,7 +84,7 @@ class AdditiveUtility:
                     cpt += self.theta_values[i]
         return cpt
 
-    def compute_relation(self, subsets, add_empty = True):
+    def compute_relation(self, subsets, add_empty = True, epsilon = 1e-8):
         """
         Given a subset of elements return the set of all the existant
         comparison relations.
@@ -100,9 +96,9 @@ class AdditiveUtility:
                 if s_i != s_j:
                     e_1 = self.evaluate(s_i)
                     e_2 = self.evaluate(s_j)
-                    if e_1 >= e_2+1e-8:
+                    if e_1 >= e_2+epsilon:
                         pref.add_preference(s_i, s_j)
-                    elif e_2 >= e_1+1e-8:
+                    elif e_2 >= e_1+epsilon:
                         pref.add_preference(s_i, s_j)
                     else:
                         pref.add_indifference(s_i, s_j)
