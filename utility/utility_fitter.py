@@ -81,7 +81,7 @@ class Utility_Fitter:
 
     def __solve(self, cst_l, obj):
         self.prob = cp.Problem(obj, cst_l)
-        self.prob.solve()
+        self.prob.solve(solver = cp.GLPK)
         # We save the lines and columns of the last solved PL.
         self.__last_constraints_set = cst_l
         self.__last_objectif = obj
@@ -109,8 +109,8 @@ class Utility_Fitter:
                 MPRS[subsets.index(B) ,subsets.index(A)] = self.compute_MPR(B,A, verbose)
         return MPRS
 
-    def get_robust_preferences(self, subsets):
-        r_mat = self.regrets_matrix(subsets)
+    def get_robust_preferences(self, subsets, verbose = False):
+        r_mat = self.regrets_matrix(subsets, verbose)
         pref_matrix = np.where(r_mat < 0)
         pref = Preferences(self.items)
         for x,y in zip(pref_matrix[0], pref_matrix[1]):
@@ -152,6 +152,8 @@ class Utility_Fitter:
         self.__solve(self.__cst, obj)
         if verbose:
             print(f"MPR({x}, {y}) = {self.__last_objectif_value}") 
+        if self.prob.status == cp.INFEASIBLE:
+            raise Exception("The model could not represent the preferences")
         return self.__last_objectif_value
 
     def compute_MMR(self, x):
