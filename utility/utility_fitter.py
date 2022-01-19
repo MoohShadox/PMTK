@@ -119,6 +119,8 @@ class Utility_Fitter:
         indif_matrix = np.where(r_mat == 0)
         indif_matrix = [(x,y) for x,y in zip(indif_matrix[0], indif_matrix[1])]
         for x,y in indif_matrix:
+            if x==y:
+                continue
             if (y,x) in indif_matrix:
                 pref.add_indifference(x,y)
         return pref
@@ -153,6 +155,8 @@ class Utility_Fitter:
         pass
 
     def compute_MPR(self, x, y, verbose = False):
+        if x == y:
+            return 0
         exp = self.preferences.vectorize_subset(y, self.model) @ self.__vars - self.preferences.vectorize_subset(x, self.model) @ self.__vars
         obj = cp.Maximize(exp)
         self.__solve(self.__cst, obj)
