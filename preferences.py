@@ -69,7 +69,6 @@ class Preferences:
         if subset == EMPTY_SET:
             return subset
         if type(subset) != tuple:
-            print(f"Warning: adding {subset} which is not a tuple")
             subset = [subset]
         try:
             subset = [i for i in subset if i in self.items]
