@@ -20,6 +20,10 @@ class AdditiveUtility:
         self.alternatives = set(items)
         self.theta_values = {}
 
+    def __str__(self):
+        for x in self.theta_values:
+            print(f"u({x}) = {self.theta_values[x]}")
+
     def add_to_theta(self, *new_t):
         """
         This function add a sequences of sets to theta.
