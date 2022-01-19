@@ -96,12 +96,19 @@ class AdditiveUtility:
                 if s_i != s_j:
                     e_1 = self.evaluate(s_i)
                     e_2 = self.evaluate(s_j)
+                    print(f"for {s_i}: {e_1} and for {s_j}: {e_2}")
+                    print("epsilon = ", epsilon)
+                    print(f"Result of the comparison {e_1}>={e_2+ epsilon} = ", e_1 >= e_2 + epsilon)
+                    print(f"Result of the comparison {e_1}=={e_2+ epsilon} = ", e_1 == e_2 + epsilon)
                     if e_1 >= e_2+epsilon:
                         pref.add_preference(s_i, s_j)
-                    elif e_2 >= e_1+epsilon:
-                        pref.add_preference(s_i, s_j)
-                    else:
+                        print(f"{s_i} > {s_j}")
+                    elif (abs(e_1 - e_2) <= epsilon) :
                         pref.add_indifference(s_i, s_j)
+                        print(f"{s_i} = {s_j}")
+                    else:
+                        pref.add_preference(s_j, s_i)
+
         return pref
 
 
