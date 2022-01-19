@@ -54,11 +54,11 @@ class Preferences:
     def contradictions(self, other):
         contr = []
         for x,y in self.preferred:
-            if (y,x) in other.preferred:
+            if [y,x] in other.preferred:
                 contr.append((x,y))
-        for x,y in self.indifferent:
-            if not (x,y) in other.indifferent:
-                contr.append((x,y))
+        #for x,y in self.indifferent:
+        #    if not [x,y] in other.indifferent:
+        #        contr.append((x,y))
         return contr
 
 
