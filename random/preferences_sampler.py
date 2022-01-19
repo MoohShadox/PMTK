@@ -17,7 +17,7 @@ def sample_preferences_from_complete_order(items, indifference_rate=0.1, empty =
         of the order.
     """
     subsets = []
-    for k in range(1, len(items)):
+    for k in range(1, len(items)+1):
         subsets += list(itertools.combinations(items, k))
     subsets += [EMPTY_SET]
     random.shuffle(subsets)
