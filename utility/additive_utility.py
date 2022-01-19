@@ -99,10 +99,8 @@ class AdditiveUtility:
                     #print(f"for {s_i}: {e_1} and for {s_j}: {e_2}")
                     if e_1 >= e_2+epsilon:
                         pref.add_preference(s_i, s_j)
-                        print(f"{s_i} > {s_j}")
                     elif (abs(e_1 - e_2) <= epsilon) :
                         pref.add_indifference(s_i, s_j)
-                        print(f"{s_i} = {s_j}")
                     else:
                         pref.add_preference(s_j, s_i)
 
