@@ -66,6 +66,10 @@ class Preferences:
         """
         Used to maintain a list of the subsets concerned by the preferences.
         """
+        if subset == EMPTY_SET:
+            return subset
+        if type(subset) != tuple:
+            print(f"Warning: adding {subset} which is not a tuple")
         subset = [i for i in subset if i in self.items]
         subset = tuple(sorted(set(subset)))
         if subset not in self.subsets:
