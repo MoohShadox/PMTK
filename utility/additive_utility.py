@@ -78,9 +78,11 @@ class AdditiveUtility:
         if len(x_s) == 0:
             return 0
         cpt = 0
+        print(self.theta_values)
         for i in self.theta:
             if all(j in x_s for j in i):
                 if i in self.theta_values:
+                    print(f"adding u_{i}")
                     cpt += self.theta_values[i]
         return cpt
 

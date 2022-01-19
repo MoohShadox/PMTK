@@ -115,6 +115,12 @@ class Utility_Fitter:
         pref = Preferences(self.items)
         for x,y in zip(pref_matrix[0], pref_matrix[1]):
             pref.add_preference(subsets[x],subsets[y])
+
+        indif_matrix = np.where(r_mat == 0)
+        indif_matrix = [(x,y) for x,y in zip(indif_matrix[0], indif_matrix[1])]
+        for x,y in indif_matrix:
+            if (y,x) in indif_matrix:
+                pref.add_indifference(x,y)
         return pref
 
     def solve_for_linear(self, vector):
