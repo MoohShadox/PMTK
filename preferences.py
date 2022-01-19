@@ -70,7 +70,7 @@ class Preferences:
             return subset
         if type(subset) != tuple:
             print(f"Warning: adding {subset} which is not a tuple")
-            subset [subset]
+            subset = [subset]
         try:
             subset = [i for i in subset if i in self.items]
             subset = tuple(sorted(set(subset)))
