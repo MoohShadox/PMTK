@@ -70,12 +70,16 @@ class Preferences:
             return subset
         if type(subset) != tuple:
             print(f"Warning: adding {subset} which is not a tuple")
-        subset = [i for i in subset if i in self.items]
-        subset = tuple(sorted(set(subset)))
-        if subset not in self.subsets:
-            self.subsets.append(subset)
-        return subset
-
+        try:
+            subset = [i for i in subset if i in self.items]
+            subset = tuple(sorted(set(subset)))
+            if subset not in self.subsets:
+                self.subsets.append(subset)
+            return subset
+        except TypeException:
+            print(f"Exception because of the type of {subset}")
+            raise TypeException
+        
     def add_preference(self, s_1, s_2):
         """
         Create a strict preference between x and y.
