@@ -3,6 +3,9 @@ import numpy as np
 
 EMPTY_SET = tuple([])
 
+def preference_complexity(x,y):
+    return 2**len(x) + 2**len(y) - (len(set(x).intersection(set(y))))
+
 class Preferences:
     """
     This class encapsulates different representations (sparse, matricial) of
@@ -60,6 +63,11 @@ class Preferences:
         #    if not [x,y] in other.indifferent:
         #        contr.append((x,y))
         return contr
+    
+    def sort_by_n_candidates(self):
+        self.preferred = sorted(self.preferred, key = lambda x:preference_complexity(x[0], x[1]))
+        self.indifferent = sorted(self.indifferent, key = lambda x:preference_complexity(x[0], x[1]))
+        return self
 
 
     def __add_subsets(self, subset):
@@ -197,6 +205,28 @@ class Preferences:
             if s not in other.indifferent:
                 prf.indifferent.append(s)
         return prf
+    
+    def intersect(self, other):
+        P = Preferences(self.items)
+        for x in self.preferred:
+            if x in other.preferred:
+                P.add_preference(*x)
+        for x in self.indifferent:
+            if x in other.indifferent:
+                P.add_indifference(*x)
+        return P
+     
+    def __add__(self, other):
+        P = Preferences(self.items)
+        for x,y in other.preferred:
+            P.add_preference(x,y)
+        for x,y in self.preferred:
+            P.add_preference(x,y)  
+        for x,y in other.indifferent:
+            P.add_indifference(x,y)
+        for x,y in self.indifferent:
+            P.add_indifference(x,y)
+        return P
 
 
 

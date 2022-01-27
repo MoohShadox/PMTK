@@ -2,6 +2,9 @@
 @Author: Ouaguenouni Mohamed
 """
 from PMTK.preferences import Preferences
+import numpy as np
+import pandas as pd
+import cvxpy as cp
 
 
 class AdditiveUtility:
@@ -63,6 +66,9 @@ class AdditiveUtility:
             ch += f"{k}: {self.theta_values[k]} \n"
         return ch
 
+    def get_dominant_subset(self):
+        pass
+
     def evaluate(self, x_s):
         """
         Evaluates the utility of a set of alternatives x by summing the values
@@ -105,12 +111,3 @@ class AdditiveUtility:
                         pref.add_preference(s_j, s_i)
 
         return pref
-
-
-if __name__ == "__main__":
-    AU = AdditiveUtility([0, 1, 2, 3, 4])
-    AU.add_to_theta([0, 1, 2], [0, 1], [0, 2], [0], [2])
-    AU.set_theta_values(((0, 1), 2), ((0, 2), 5), ((3, ), 1), ((1, ), 1))
-    A = [[0, 1], [0, 2], [1, 2, 3], [1], [3]]
-    preferences = AU.compute_relation(A)
-    print(preferences)

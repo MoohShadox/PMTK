@@ -116,13 +116,13 @@ class Utility_Fitter:
         for x,y in zip(pref_matrix[0], pref_matrix[1]):
             pref.add_preference(subsets[x],subsets[y])
 
-        indif_matrix = np.where(r_mat == 0)
+        indif_matrix = np.where(np.abs(r_mat) <= self.epsilon)
         indif_matrix = [(x,y) for x,y in zip(indif_matrix[0], indif_matrix[1])]
         for x,y in indif_matrix:
             if x==y:
                 continue
             if (y,x) in indif_matrix:
-                pref.add_indifference(x,y)
+                pref.add_indifference(subsets[x],subsets[y])
         return pref
 
     def solve_for_linear(self, vector):
@@ -135,7 +135,7 @@ class Utility_Fitter:
 
     def get_utility(self):
         if self.prob.status == cp.INFEASIBLE:
-            print("Infeasible! ")
+            #print("Infeasible! ")
             return None
         uf = AdditiveUtility(self.items)
         theta_values = {key: val for key, val in zip(self.model, self.__vars.value)}

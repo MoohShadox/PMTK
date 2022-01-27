@@ -5,6 +5,7 @@ from PMTK.utils import *
 from PMTK.random.subset_samplers import sample_subsets
 from PMTK.utility.utility_fitter import Utility_Fitter
 import time
+import random
 
 class Connivence_Solver:
 
@@ -36,6 +37,7 @@ class Connivence_Solver:
         #print("Mat shape:", mat.shape)
         #print("Objective:", sum(variables))
         obj = cp.Minimize( sum( [ variables[i]*(sizes_pref[i] + 1000) for i in range(len(self.preferences))] ) )
+        #obj = cp.Minimize( sum( [ variables[i]*(random.random()) for i in range(len(self.preferences))] ) )
         problem = cp.Problem(obj, [variables >= 0, sum(variables) >= min_size, mat.astype(float) @ variables == 0.0] )
         p = problem.solve()
         #print(problem.status)
