@@ -45,6 +45,8 @@ class Utility_Fitter:
     def set_model(self, model):
         self.model = model
         return self
+    
+    
 
     def build_preferences_cst(self, bound_subsets_utilities = True, bound_model = False):
         if(self.__vars is None):
@@ -142,6 +144,9 @@ class Utility_Fitter:
         kv = [(x,theta_values[x]) for x in theta_values]
         uf.set_theta_values(*kv)
         return uf
+    
+    def sample_utility(self):
+        pass
 
     def get_most_discriminant_utility(self):
         if self.__cst is None or len(self.__cst) == 0:
@@ -152,7 +157,13 @@ class Utility_Fitter:
         return self
 
     def get_min_additivity_utility(self):
-        pass
+        obj = cp.Maximize(0)
+        return 
+    
+    def get_polyhedron(self):
+        obj = cp.Maximize(0)
+        return cp.Problem(obj, self.__cst)
+
 
     def compute_MPR(self, x, y, verbose = False):
         if x == y:

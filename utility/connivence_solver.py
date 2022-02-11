@@ -18,7 +18,7 @@ class Connivence_Solver:
         self.preferences = preferences
         return self
 
-    def check_connivences(self, min_size = 1):
+    def check_connivences(self, min_size = 1, log_output = False):
         #print("Model size:", len(self.model))
         #print("Number of préférences:", len(self.preferences))
 
@@ -36,10 +36,10 @@ class Connivence_Solver:
         mat = mat.T
         #print("Mat shape:", mat.shape)
         #print("Objective:", sum(variables))
-        obj = cp.Minimize( sum( [ variables[i]*(sizes_pref[i] + 1000) for i in range(len(self.preferences))] ) )
+        obj = cp.Minimize( sum( [ variables[i]*(sizes_pref[i]) for i in range(len(self.preferences))] ) )
         #obj = cp.Minimize( sum( [ variables[i]*(random.random()) for i in range(len(self.preferences))] ) )
         problem = cp.Problem(obj, [variables >= 0, sum(variables) >= min_size, mat.astype(float) @ variables == 0.0] )
-        p = problem.solve()
+        p = problem.solve(cp.CPLEX)
         #print(problem.status)
         #print(problem.value)
         if problem.status == cp.INFEASIBLE:

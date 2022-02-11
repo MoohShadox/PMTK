@@ -41,3 +41,11 @@ def get_all_candidates(connivents):
     return get_k_candidates(connivents, len(I))
 
 
+def union(set_of_subsets):
+    L = []
+    for s in set_of_subsets:
+        for i in s:
+            if not i in L:
+                L.append(i)
+    return L
+
