@@ -10,42 +10,76 @@ from PMTK.utility.utility_fitter import Utility_Fitter
 from PMTK.utility.connivence_solver import Connivence_Solver
 from PMTK.utility.candidate_iterator import Candidate_Iterator
 from PMTK.utility.extension_solver import *
+from PMTK.utility.kernel_finder import *
 from tqdm.notebook import tqdm
 from itertools import chain
 
-class TNode:
-    def __init__(self, tree, theta, banned = None, level = 0):
-        if not banned:
-            banned = []
-        if theta == []:
-            theta.append(EMPTY_SET)
-        self.banned = banned
+def chain_iterators(*it):
+    for i in it:
+        for j in i:
+            yield j
+
+def additivity(theta):
+    return max([len(i) for i in theta])
+
+def get_unifying_model(prf, init_mdl):
+    print("Init model", init_mdl)
+    T = Tree(prf.items, prf ,init_mdl)
+    T.head.open_node()
+    return union(T.found_theta)
+
+def better(theta1, theta2):
+    if additivity(theta1) < additivity(theta2):
+        return 2
+    if additivity(theta2) < additivity(theta1):
+        return -2
+    if len(theta1) > len(theta2):
+        return -1
+    if len(theta2) > len(theta1):
+        return 1
+    return 0
+
+def dominated(theta, theta_list):
+    for t in theta_list:
+        if better(t, theta) > 0:
+            return True
+    return False
+
+def keep_non_dominated(theta_list):
+    non_dominated = []
+    for t in theta_list:
+        if not dominated(t, theta_list):
+            non_dominated.append(t)
+    return non_dominated
+
+def vectorize_subset( x, model):
+    vector = np.zeros(len(model))
+    for subset in model:
+        if all(s in x for s in subset):
+            vector[model.index(subset)] += 1
+    return vector
+
+def vectorize_preference(x, y, model):
+    vector = vectorize_subset(x, model) - vectorize_subset(y, model)
+    return vector
+
+class Node:
+    
+    def __init__(self, tree, theta, banned, level = 0):
         self.theta = theta
-        self.connivent = None
-        self.child_iterator = None
+        self.k = additivity(theta)
+        self.s = len(theta)
         self.tree = tree
-        self.childs = []
+        self.banned = banned
+        self.children = []
+        self.connivent = None
         self.level = level
+        self.found_connivent = False
         self.solved = False
-        
-    def __iter__(self):
-        return self.__it
     
-    def __str__(self):
-        c = f"-----Node({self.theta}) [Banned = {self.banned}]\n"
-        for i in self.childs:
-            c += self.level*"\t"+ f"{i}"
-        return c
-        
-    
-    def __repr__(self):
-        return self.__str__()
-    
-    def get_next_child(self, min_size = None, max_size = None, log_output = False):
+    def get_next_child(self, min_size = None, max_size = None):
         if not self.connivent:
-            #print("Solving node:",self.theta," on level:", self.level)
-            self.compute_connivent(self.tree.preferences, log_output=True)
-            #print("Solved!")
+            self.compute_connivent(self.tree.preferences)
         try:
             if min_size:
                 self.child_iterator.min_size = min_size
@@ -55,55 +89,34 @@ class TNode:
             return e
         except StopIteration:
             return None
-    
-    def build(self, log_output = False):
         
-        if len(self.theta) > self.tree.best_n_elements:
-            #print("Theta: ", self.theta, ", descendant of a size >= ", len(self.theta) + 1 , " CUT ! ") 
-            return 
-        e = self.get_next_child(min_size = self.tree.min_size, max_size = self.tree.max_size)
-        all_bans = []
-        cpt = 1
-        while e:
-            if e in all_bans:
-                continue
-            #print(f"Node:{self.theta} with id: ", self.idx," -> son's id :", str(self.idx + f".{cpt}"))
-            child = TNode(self.tree, self.theta + [e], banned =list(set( self.banned + list(all_bans))) , level = self.level + 1)
-            child.build()
-            all_bans.append(e)
-            e = self.get_next_child(min_size = self.tree.min_size, max_size = self.tree.max_size, log_output=log_output)
-            self.childs.append(child)
-            cpt = cpt + 1
+    def __str__(self):
+        c = f"-----Node({self.theta}) [Banned = {self.banned}]\n"
+        for i in self.children:
+            c += self.level*"\t"+ f"{i}"
+        return c
+        
     
-    def get_all_thetas(self, L = None):
-        if not L:
-            L = []
-        if self.solved:
-            if not self.theta in L:
-                L.append(self.theta)
-        for c in self.childs:
-            c_L = c.get_all_thetas(L)
-            for c in c_L:
-                if not c in L:
-                    L.append(c)
-        return L
-                
-
+    def __repr__(self):
+        return self.__str__()
+    
+    
+    def open_node(self):
+        if dominated(self.theta, self.tree.found_theta):
+            print("#", end="")
+            return
+        
+        print(f".", end="")
+        
+        if not self.found_connivent:
+            self.connivent = self.tree.found_connivence(self.theta)
+            self.found_connivent = True
             
-    def compute_connivent(self, preferences, log_output = False):
-        CS = Connivence_Solver(preferences, self.theta)
-        self.connivent = CS.check_connivences(log_output = log_output)
         if not self.connivent:
-            self.connivent = []
-            m = max([len(i) for i in self.theta])
-            self.tree.max_size = min(self.tree.max_size, m)
-            self.tree.best_n_elements = min(len(self.theta), self.tree.best_n_elements)
             self.solved = True
-            print("Solved for : ", self.theta," k=",{self.tree.max_size}, " s = ", self.tree.best_n_elements)
-            
+            return 
             
         subsets = []
-        #print(self.connivent)
         for x,y in self.connivent:
             if not x in subsets:
                 subsets.append(x)
@@ -111,38 +124,70 @@ class TNode:
                 subsets.append(y)
         self.child_iterator = Candidate_Iterator(self.tree.items,subsets,banned = self.theta + self.banned)
         self.__it = iter(self.child_iterator)
+        e = self.get_next_child(min_size = 0, max_size = self.tree.get_additivity())
+        all_bans = []
+        cpt  = 0
+        while e:
+            cpt = cpt + 1
+            if e in all_bans:
+                continue
+            #print(f"Node:{self.theta} with id: ", self.idx," -> son's id :", str(self.idx + f".{cpt}"))
+            child = Node(self.tree, self.theta + [e], banned =list(set( self.banned + list(all_bans))) , level = self.level + 1)
+            #print(f"..{cpt}..", end="")
+            child.open_node()
+            
+            all_bans.append(e)
+            e = self.get_next_child(min_size = 0, max_size = self.tree.get_additivity())
+            
+            self.children.append(child)
+            
     
-
-class Ttree:
-    def __init__(self, items, preferences, initial_theta = None):
-        if not initial_theta:
-            initial_theta = []
-        self.head = TNode(self, initial_theta)
-        self.max_size = len(items)
-        self.min_size = 0
-        
-        self.best_n_elements = np.inf
-        
-        self.preferences = preferences
+class Tree:
+    def __init__(self, items, preferences, init_theta, epsilon=1e-4):
         self.items = items
-    
+        self.preferences = preferences
+        self.found_theta = []
+        self.connivent_calculated = []  
+        self.head = Node(self, init_theta, [])
+        self.epsilon = epsilon
+        
     def __str__(self):
         c = f"==========Theta Tree===== \n"
         c += str(self.head)
         return c
     
-    def get_all_thetas(self):
-        return self.head.get_all_thetas()
+    def get_additivity(self):
+        if len(self.found_theta)>0:
+            return additivity(self.found_theta[0])
+        return np.inf
+
+    def found_connivence(self, theta):
+        for connivent in self.connivent_calculated:
+            if self.is_connivent(connivent, theta):
+                return connivent
+        CS = Connivence_Solver(self.preferences, theta)        
+        #print("Solving...", end="")
+        c = CS.check_connivences()
+        #print(f"  Solved in {(time.time() - t):.2f} s    ",end="")
+        if not c:
+            self.found_theta.append(theta)
+            #print(f"Found theta: {additivity(theta)} , {len(theta)}") 
+            KF = Kernel_Finder(self.items, self.preferences, theta, epsilon=self.epsilon)
+            KF.build_program()
+            kernel = KF.compute_kernel()
+            self.found_theta.append(kernel)
+            self.found_theta = keep_non_dominated(self.found_theta)
+            #print("Found:",theta)
+            #print("New size: ", len(self.found_theta))
+            print(f"! {len(self.found_theta)} \n \n ")
+            return c
+        #if not c in self.connivent_calculated:
+        #    self.connivent_calculated.append(c)
+        return c
     
-    def get_min_thetas(self):
-        thetas = self.head.get_all_thetas()
-        min_size = min([len(i) for i in thetas])
-        min_t = []
-        for t in thetas:
-            if len(t) == min_size:
-                min_t.append(t)
-        return min_t
-        
-    
-    def __repr__(self):
-        return self.__str__()
+    def is_connivent(self, preference_set, theta):
+        L = []
+        for x,y in preference_set:
+            L.append(vectorize_preference(x,y,theta))
+        L = np.array(L)
+        return ((L.sum(axis=0) == 0).all())

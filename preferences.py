@@ -1,10 +1,28 @@
 """ @Author: Ouaguenouni Mohamed """ 
 import numpy as np
+import random
 
 EMPTY_SET = tuple([])
 
 def preference_complexity(x,y):
     return 2**len(x) + 2**len(y) - (len(set(x).intersection(set(y))))
+
+
+def vectorize_subset(x, m):
+    vector = np.zeros(len(m))
+    for subset in m:
+        if all(s in x for s in subset):
+            vector[m.index(subset)] += 1
+    return vector
+
+def vector_to_subset(vector, model):
+    j = np.where(vector == 1)[0]
+    s = []
+    for k in j:
+        for i in model[k]:
+            s.append(i)
+    return tuple(set(s))
+    
 
 class Preferences:
     """
@@ -26,7 +44,44 @@ class Preferences:
         self.indifferent = []
         self.subsets = []
         self.relation_matrix = None
-
+        
+    def to_dataset(self, model = None):
+        if not model:
+            model = [(i,) for i in self.items]
+        arr = []
+        for x,y in self.preferred:
+            v_x = self.vectorize_subset(x, model)
+            v_y = self.vectorize_subset(y, model)
+            v1 = list(v_x) + list(v_y) + [1]
+            v2 = list(v_y) + list(v_x) + [2]
+            arr.append(np.array(v1))
+            arr.append(np.array(v2))
+        for x,y in self.indifferent:
+            v_x = self.vectorize_subset(x, model)
+            v_y = self.vectorize_subset(y, model)
+            v1 = list(v_x) + list(v_y) + [0]
+            v2 = list(v_y) + list(v_x) + [0]
+            arr.append(np.array(v1))
+            arr.append(np.array(v2))
+        arr = np.array(arr)
+        return arr
+    
+    def sample_subpref(self, ratio, min_number = 10):
+        p = Preferences(self.items)
+        cpt = 0
+        while cpt < min_number:
+            for x,y in self.preferred:
+                if random.random() < ratio:
+                    p.add_preference(x,y)
+                    cpt = cpt + 1
+            for x,y in self.indifferent:
+                if random.random() < ratio:
+                    p.add_indifference(x,y)
+                    cpt = cpt + 1
+            if cpt > min_number:
+                break
+        return p
+        
     def vectorize_subset(self, x, model):
         vector = np.zeros(len(model))
         for subset in model:
@@ -166,6 +221,14 @@ class Preferences:
     def __len__(self):
         return len(self.indifferent) + len(self.preferred)
         pass
+    
+    def __repr__(self):
+        r_ch = ""
+        for s_1, s_2 in self.preferred:
+            r_ch += f"{s_1} > {s_2} \n"
+        for s_1, s_2 in self.indifferent:
+            r_ch += f"{s_1} = {s_2} \n"  
+        return r_ch
 
     def __str__(self):
         r_ch = "Preference relation : \n"

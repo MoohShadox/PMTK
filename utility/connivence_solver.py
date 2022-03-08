@@ -9,18 +9,22 @@ import random
 
 class Connivence_Solver:
 
-    def __init__(self, preferences = None, model = None):
+    def __init__(self, preferences = None, model = None, solver = None):
         self.preferences = preferences
         self.model = model
         self.problem = None
-
+        if solver == None:
+            solver = cp.GLPK_MI
+        self.solver = solver
+        
+        
     def set_preferences(self, preferences):
         self.preferences = preferences
         return self
 
     def check_connivences(self, min_size = 1, log_output = False):
         #print("Model size:", len(self.model))
-        #print("Number of préférences:", len(self.preferences))
+        #print("préférences in connivence:", len(self.preferences))
 
         variables = cp.Variable(len(self.preferences), integer = True)
 
@@ -36,18 +40,31 @@ class Connivence_Solver:
         mat = mat.T
         #print("Mat shape:", mat.shape)
         #print("Objective:", sum(variables))
+        
+        
         obj = cp.Minimize( sum( [ variables[i]*(sizes_pref[i]) for i in range(len(self.preferences))] ) )
         #obj = cp.Minimize( sum( [ variables[i]*(random.random()) for i in range(len(self.preferences))] ) )
+        #obj = cp.Minimize(0)
+
+        
         problem = cp.Problem(obj, [variables >= 0, sum(variables) >= min_size, mat.astype(float) @ variables == 0.0] )
-        p = problem.solve(cp.CPLEX)
+        p = problem.solve(self.solver, reoptimize=True, verbose=False)
+        #print(problem.status)
         #print(problem.status)
         #print(problem.value)
+        
+        if problem.status == cp.OPTIMAL:
+            connivent = []
+            for i in np.where(variables.value != 0)[0]:
+                for k in range(int(variables.value[i])):
+                    connivent.append(self.preferences[i])
+            return connivent
+        
+        assert problem.status == cp.INFEASIBLE
+        
         if problem.status == cp.INFEASIBLE:
-            return None
-        connivent = []
-        for i in np.where(variables.value == 1 )[0]:
-            connivent.append(self.preferences[i])
-        return connivent
+            return []
+
 
 if __name__ == "__main__":
     for i in range(10):

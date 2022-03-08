@@ -83,7 +83,7 @@ class Utility_Fitter:
 
     def __solve(self, cst_l, obj):
         self.prob = cp.Problem(obj, cst_l)
-        self.prob.solve(solver = cp.GLPK)
+        self.prob.solve(solver = cp.CPLEX)
         # We save the lines and columns of the last solved PL.
         self.__last_constraints_set = cst_l
         self.__last_objectif = obj
@@ -109,6 +109,10 @@ class Utility_Fitter:
             for B in subsets:
                 MPRS[subsets.index(A),subsets.index(B)] = self.compute_MPR(A,B, verbose)
                 MPRS[subsets.index(B) ,subsets.index(A)] = self.compute_MPR(B,A, verbose)
+                if verbose:
+                    print(f"MPR({A}, {B}) = {MPRS[subsets.index(A),subsets.index(B)]}")
+                    print(f"MPR({B}, {A}) = {MPRS[subsets.index(B),subsets.index(A)]}")
+
         return MPRS
 
     def get_robust_preferences(self, subsets, verbose = False):
@@ -117,7 +121,6 @@ class Utility_Fitter:
         pref = Preferences(self.items)
         for x,y in zip(pref_matrix[0], pref_matrix[1]):
             pref.add_preference(subsets[x],subsets[y])
-
         indif_matrix = np.where(np.abs(r_mat) <= self.epsilon)
         indif_matrix = [(x,y) for x,y in zip(indif_matrix[0], indif_matrix[1])]
         for x,y in indif_matrix:
@@ -129,7 +132,7 @@ class Utility_Fitter:
 
     def solve_for_linear(self, vector):
         obj = cp.Maximize(self.__vars @ vector)
-        self.__solve(self.cst, obj)
+        self.__solve(self.__cst, obj)
         return self
 
     def problem(self):
