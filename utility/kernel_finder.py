@@ -34,27 +34,19 @@ class Kernel_Finder:
         self.vars = cp.Variable(len(self.model))
         self.is_not_zero = cp.Variable(len(self.model), integer = True)
         self.additivity = cp.Variable()
-        
         self.cst= [self.is_not_zero >= 0, self.is_not_zero <= 1]
         self.cst.append(self.additivity >= 0)
-        
-        
         for p in self.preferences.preferred:
             p_v = vectorize_subset(p[0], self.model) - vectorize_subset(p[1], self.model) 
             cst = self.vars @ p_v >= self.epsilon
             self.cst.append(cst)
-            
         for p in self.preferences.indifferent:
             p_v = vectorize_subset(p[0], self.model) - vectorize_subset(p[1], self.model) 
             cst = self.vars @ p_v == 0
             self.cst.append(cst)
-            
-        #self.cst.append(self.vars <= 1)
-        #self.cst.append(self.vars >= -1)
         self.cst.append(self.vars <= self.is_not_zero)
         self.cst.append(self.vars >= -self.is_not_zero)
         length_vector = np.array([len(s) for s in self.model])
-
         for nz, size in zip(self.is_not_zero, length_vector):
             self.cst.append(self.additivity >= nz*size)
             pass

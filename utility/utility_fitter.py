@@ -83,7 +83,7 @@ class Utility_Fitter:
 
     def __solve(self, cst_l, obj):
         self.prob = cp.Problem(obj, cst_l)
-        self.prob.solve(solver = cp.CPLEX)
+        self.prob.solve(cp.GLPK)
         # We save the lines and columns of the last solved PL.
         self.__last_constraints_set = cst_l
         self.__last_objectif = obj

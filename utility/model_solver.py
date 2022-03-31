@@ -111,7 +111,6 @@ class Node:
         if not self.found_connivent:
             self.connivent = self.tree.found_connivence(self.theta)
             self.found_connivent = True
-            
         if not self.connivent:
             self.solved = True
             return 
@@ -122,6 +121,7 @@ class Node:
                 subsets.append(x)
             if not y in subsets:
                 subsets.append(y)
+            
         self.child_iterator = Candidate_Iterator(self.tree.items,subsets,banned = self.theta + self.banned)
         self.__it = iter(self.child_iterator)
         e = self.get_next_child(min_size = 0, max_size = self.tree.get_additivity())
@@ -171,16 +171,15 @@ class Tree:
         #print(f"  Solved in {(time.time() - t):.2f} s    ",end="")
         if not c:
             self.found_theta.append(theta)
-            #print(f"Found theta: {additivity(theta)} , {len(theta)}") 
+            print(f"Found theta: {additivity(theta)} , {len(theta)}") 
             KF = Kernel_Finder(self.items, self.preferences, theta, epsilon=self.epsilon)
             KF.build_program()
             kernel = KF.compute_kernel()
             self.found_theta.append(kernel)
             self.found_theta = keep_non_dominated(self.found_theta)
-            #print("Found:",theta)
-            #print("New size: ", len(self.found_theta))
+            print("Found:",theta)
+            print("New size: ", len(self.found_theta))
             print(f"! {len(self.found_theta)} \n \n ")
-            return c
         #if not c in self.connivent_calculated:
         #    self.connivent_calculated.append(c)
         return c

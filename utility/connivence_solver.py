@@ -14,7 +14,7 @@ class Connivence_Solver:
         self.model = model
         self.problem = None
         if solver == None:
-            solver = cp.GLPK_MI
+            solver = cp.GLPK
         self.solver = solver
         
         
@@ -26,7 +26,7 @@ class Connivence_Solver:
         #print("Model size:", len(self.model))
         #print("préférences in connivence:", len(self.preferences))
 
-        variables = cp.Variable(len(self.preferences), integer = True)
+        variables = cp.Variable(len(self.preferences))
 
         mat = self.preferences.get_matrix(self.model, self.preferences.preferred)
         sizes_pref = [len(x[0]) + len(x[1]) for x in self.preferences.preferred]
@@ -56,8 +56,7 @@ class Connivence_Solver:
         if problem.status == cp.OPTIMAL:
             connivent = []
             for i in np.where(variables.value != 0)[0]:
-                for k in range(int(variables.value[i])):
-                    connivent.append(self.preferences[i])
+                connivent.append(self.preferences[i])
             return connivent
         
         assert problem.status == cp.INFEASIBLE

@@ -8,7 +8,6 @@ from PMTK.utility.additive_utility import AdditiveUtility
 from PMTK.preferences import *
 from PMTK.utility.utility_fitter import Utility_Fitter
 from PMTK.utility.connivence_solver import Connivence_Solver
-from PMTK.utility.model_solver import Ttree
 #from PMTK.utility.utility_sampler import Utility_Sampler
 from PMTK.utility.extension_solver import *
 from tqdm.notebook import tqdm
@@ -20,7 +19,7 @@ class EP_Sampler:
     def __init__(self,items, preferences):
         self.items = items
         self.preferences = preferences
-        self.epsilon = 1e-2
+        self.epsilon = 1e-6
         self.theta = None
         self.problem = None
     
@@ -31,6 +30,8 @@ class EP_Sampler:
     def empty_polyhedron(self):
         UF = Utility_Fitter(self.items, self.theta)
         UF.epsilon = self.epsilon
+        if len(self.preferences) == 0:
+            return True
         UF.set_model(self.theta).set_preferences(self.preferences).build_vars().build_preferences_cst(bound_model = True)
         u = UF.solve_for_linear(np.random.rand(len(self.theta))).get_utility()
         return not u
@@ -64,7 +65,6 @@ class EP_Sampler:
         for e in ep:
             s = self.find_best_subset(e)
             L[s] = L.get(s,0) + 1
-        print("L=", L)
         ordered_subsets = [i[0] for i in sorted(L.items(), key = lambda x:x[1], reverse=True)] 
         return ordered_subsets
 

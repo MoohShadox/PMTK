@@ -57,6 +57,7 @@ class Preferences:
             arr.append(np.array(v1))
             arr.append(np.array(v2))
         for x,y in self.indifferent:
+            continue
             v_x = self.vectorize_subset(x, model)
             v_y = self.vectorize_subset(y, model)
             v1 = list(v_x) + list(v_y) + [0]
