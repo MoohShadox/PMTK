@@ -143,13 +143,14 @@ class Node:
             
     
 class Tree:
-    def __init__(self, items, preferences, init_theta, epsilon=1e-4):
+    def __init__(self, items, preferences, init_theta, epsilon=1e-4, use_kernel = True):
         self.items = items
         self.preferences = preferences
         self.found_theta = []
         self.connivent_calculated = []  
         self.head = Node(self, init_theta, [])
         self.epsilon = epsilon
+        self.use_kernel = use_kernel
         
     def __str__(self):
         c = f"==========Theta Tree===== \n"
@@ -172,10 +173,11 @@ class Tree:
         if not c:
             self.found_theta.append(theta)
             print(f"Found theta: {additivity(theta)} , {len(theta)}") 
-            KF = Kernel_Finder(self.items, self.preferences, theta, epsilon=self.epsilon)
-            KF.build_program()
-            kernel = KF.compute_kernel()
-            self.found_theta.append(kernel)
+            if self.use_kernel:
+                KF = Kernel_Finder(self.items, self.preferences, theta, epsilon=self.epsilon)
+                KF.build_program()
+                kernel = KF.compute_kernel()
+                self.found_theta.append(kernel)
             self.found_theta = keep_non_dominated(self.found_theta)
             print("Found:",theta)
             print("New size: ", len(self.found_theta))
