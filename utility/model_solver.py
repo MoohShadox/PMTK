@@ -23,7 +23,6 @@ def additivity(theta):
     return max([len(i) for i in theta])
 
 def get_unifying_model(prf, init_mdl):
-    print("Init model", init_mdl)
     T = Tree(prf.items, prf ,init_mdl)
     T.head.open_node()
     return union(T.found_theta)
@@ -172,16 +171,12 @@ class Tree:
         #print(f"  Solved in {(time.time() - t):.2f} s    ",end="")
         if not c:
             self.found_theta.append(theta)
-            print(f"Found theta: {additivity(theta)} , {len(theta)}") 
             if self.use_kernel:
                 KF = Kernel_Finder(self.items, self.preferences, theta, epsilon=self.epsilon)
                 KF.build_program()
                 kernel = KF.compute_kernel()
                 self.found_theta.append(kernel)
             self.found_theta = keep_non_dominated(self.found_theta)
-            print("Found:",theta)
-            print("New size: ", len(self.found_theta))
-            print(f"! {len(self.found_theta)} \n \n ")
         #if not c in self.connivent_calculated:
         #    self.connivent_calculated.append(c)
         return c
