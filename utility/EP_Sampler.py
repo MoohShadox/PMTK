@@ -87,7 +87,7 @@ class EP_Sampler:
                 ut_vars.append(v[0])
                 continue
             name = "&".join(["x_"+str(i) for i in x])
-            s = cp.Variable(name = name)
+            s = cp.Variable(name = name, integer = True)
             cst_l = [s <= i for i in v]
             cst_l += [s <= 1]
             cst_l += [s >= 0]
