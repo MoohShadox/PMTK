@@ -20,6 +20,8 @@ def chain_iterators(*it):
             yield j
 
 def additivity(theta):
+    if len(theta) == 0:
+        return 0
     return max([len(i) for i in theta])
 
 def get_unifying_model(prf, init_mdl):
