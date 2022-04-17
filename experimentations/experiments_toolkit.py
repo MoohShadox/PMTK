@@ -35,7 +35,7 @@ from datetime import datetime
 import cvxpy as cp
 import os
 
-def get_exp_id():
+def get_exp_id(root_path, EXP_TITLE):
   s = datetime.today().strftime('%d%m-%H%M%S')
   p = os.path.join(root_path, EXP_TITLE+s)
   return p
