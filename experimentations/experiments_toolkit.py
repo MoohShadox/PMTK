@@ -35,11 +35,134 @@ from datetime import datetime
 import cvxpy as cp
 import os
 
-def get_exp_id(root_path, EXP_TITLE):
-  s = datetime.today().strftime('%d%m-%H%M%S')
-  p = os.path.join(root_path, EXP_TITLE+s)
-  return p
-  
+### ELICITATION TOOLSET ####
+
+def sample_direction(theta):
+  v = np.random.normal(0,1, len(theta))
+  v = {t:v_i for t,v_i in zip(theta, list(v))}
+  return v
+
+
+def get_min_max_r(alpha, vars, cst, x_0):
+  r_max = optimize(vars, cst, alpha, x_0, sense = 1)
+  r_min = optimize(vars, cst, alpha, x_0, sense = -1)
+  return r_min, r_max
+
+def get_polyhedron(preferences, theta, epsilon = 1e-6):
+  vars = cp.Variable(len(theta))
+  vars_dict = {t:v for t,v in zip(theta, vars)}
+  cst = [vars >= -1, vars <= 1]
+  for x,y in preferences.preferred:
+    v_x = vectorize_subset(x, theta)
+    v_y = vectorize_subset(y, theta)
+    v_x = v_x * vars
+    v_y = v_y * vars
+    cst.append(v_x - v_y >= epsilon)
+  return vars_dict, cst
+
+def get_best_subset(preferences, theta, utilities, tabu = None):
+  if not tabu:
+    tabu = []
+  items = preferences.items
+  vars = cp.Variable(len(items), integer = True)
+  for v, i  in zip(vars, items):
+    v.name = str(i)
+  ut_vars = {}
+  cst_all = [vars >= 0 , vars <= 1]
+  exp1 = []
+  for u in theta:
+    v = [vars[list(items).index(i)] for i in u]
+    if len(u) == 1:
+      ut_vars[u] = vars[list(items).index(u[0])]
+      exp1.append(utilities[u] * ut_vars[u])
+      continue
+    s = cp.Variable(integer = True)
+    s.name = str(u)
+    cst_l = [s <= i for i in v]
+    cst_l += [s <= 1]
+    cst_l += [s >= 0]
+    cst_l += [s >= sum(v) - len(v) + 1]
+    cst_all += cst_l
+    ut_vars[u] = s
+    exp1.append(utilities[u] * s)
+
+  for s in tabu:
+    v = sum([ut_vars[tuple([i])] for i in u if i in s])
+    v_b = sum([ut_vars[tuple([i])] for i in u if not i in s])
+    e = (v_b >= v - len(s) + 1)
+    cst_all += [e]
+    #print(f"Added tabu on {s} : {e}")
+  exp1 = sum(exp1)
+  obj1 = cp.Maximize(exp1)
+  prob = cp.Problem(obj1, cst_all)
+  s = prob.solve()
+  s1 = tuple(np.where(vars.value == 1)[0])
+  return s1
+
+def hit_and_run(vars, cst, n_steps, epsilon = 1e-2):
+  sampled = []
+  x_0 = get_ext_pt(vars, cst)
+  for _ in range(n_steps):
+    #print("x_0 = ", x_0)
+    direction = sample_direction(list(vars.keys()))
+    r_min, r_max = get_min_max_r(direction, vars, cst, x_0)
+    r = r_min + random.random() * (r_max - r_min)
+    x_0 = {i:x_0[i] + direction[i] * r for i in x_0}
+    #print("rmin = ", r_min,  " rmax = ", r_max, "r = ", r)
+    sampled.append(x_0)
+  return sampled
+
+def get_ext_pt(vars, cst):
+  exp = 0
+  for v in vars:
+    exp += np.random.normal(0,1) * vars[v]
+  obj = cp.Maximize(exp)
+  prob = cp.Problem(obj, cst)
+  prob.solve()
+  if not (prob.status) == "optimal":
+    print("Problem solving failed")
+    print("Problem status: ", prob.status)
+  return {i:vars[i].value for i in vars}
+
+def optimize(vars, cst, dir, v_0 , sense = 1):
+  r = cp.Variable()
+  cst_n = list(cst)
+  for i in vars:
+    cst_n += [vars[i] == v_0[i] + dir[i] * r]
+  if sense == 1:
+    obj = cp.Maximize(r)
+  elif sense == -1:
+    obj = cp.Minimize(r)
+  else:
+    return None
+  prob = cp.Problem(obj, cst_n)
+  prob.solve()
+  if not (prob.status) == "optimal":
+    print("Problem solving failed")
+    print("Problem status: ", prob.status)
+  return r.value
+
+
+def get_min_max_r(alpha, vars, cst, x_0):
+  r_max = optimize(vars, cst, alpha, x_0, sense = 1)
+  r_min = optimize(vars, cst, alpha, x_0, sense = -1)
+  return r_min, r_max
+
+def rebuild_tierlist(preferences, theta, sampled, n_tiers):
+  tiers = {}
+  current = 1
+  banned = []
+  for i in range(n_tiers):
+    tier = []
+    for u in sampled:
+      s = get_best_subset(preferences, theta, u, banned)
+      if not s in tier:
+        tier.append(s)
+    banned = banned + tier
+    tiers[current] = tier
+    current = current + 1
+  return tiers
+###############################
 
 def train_clf(clf_class, preferences, theta, **kwargs):
   clf = clf_class(**kwargs)
