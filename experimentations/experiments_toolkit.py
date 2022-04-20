@@ -87,8 +87,8 @@ def get_best_subset(preferences, theta, utilities, tabu = None):
     exp1.append(utilities[u] * s)
 
   for s in tabu:
-    v = sum([ut_vars[tuple([i])] for i in u if i in s])
-    v_b = sum([ut_vars[tuple([i])] for i in u if not i in s])
+    v = sum([ut_vars[tuple([i])] for i in items if i in s])
+    v_b = sum([ut_vars[tuple([i])] for i in items if not i in s])
     e = (v_b >= v - len(s) + 1)
     cst_all += [e]
     #print(f"Added tabu on {s} : {e}")
