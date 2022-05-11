@@ -96,7 +96,8 @@ class AdditiveUtility:
         comparison relations.
         """
         pref = Preferences(self.alternatives)
-        subsets += [tuple([])]
+        if add_empty:
+            subsets += [tuple([])]
         for s_i in subsets:
             for s_j in subsets:
                 if s_i != s_j:

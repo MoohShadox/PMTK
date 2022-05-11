@@ -159,9 +159,6 @@ class Utility_Fitter:
         self.__solve(self.__cst, obj)
         return self
 
-    def get_min_additivity_utility(self):
-        obj = cp.Maximize(0)
-        return 
     
     def get_polyhedron(self):
         obj = cp.Maximize(0)

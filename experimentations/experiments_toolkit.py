@@ -37,6 +37,13 @@ import os
 
 ### ELICITATION TOOLSET ####
 
+def train_cardinal(items, theta, preferences):
+    UF = Utility_Fitter(items,theta).set_model(theta).set_preferences(preferences).build_vars().build_preferences_cst().get_most_discriminant_utility().get_utility()
+    return UF
+
+def predict_cardinal(UF, subsets):
+    return UF.compute_relation(subsets,add_empty = False)
+
 def sample_direction(theta):
   v = np.random.normal(0,1, len(theta))
   v = {t:v_i for t,v_i in zip(theta, list(v))}
@@ -168,19 +175,29 @@ def train_clf(clf_class, preferences, theta, **kwargs):
   clf = clf_class(**kwargs)
   ds = preferences.to_dataset(theta)
   X,y = ds[:, :-1], ds[:, -1]
+  y[y == 1] = 0
+  y[y == 2] = 1
   clf.fit(X,y)
   return clf
 
 def predict_clf(items, clf, theta, subsets):
   p = Preferences(items)
-  for s1 in subsets:
-    for s2 in subsets:
-      x = list(vectorize_subset(s1, theta)) + list(vectorize_subset(s2, theta))
-      x = np.array(x)
-      x = x.reshape((1, -1))
-      if (clf.predict(x) == 1):
+  L = []
+  for i1 in range(len(subsets)):
+    for i2 in range(len(subsets)):
+      s1 = subsets[i1]
+      s2 = subsets[i2]
+      x1 = list(vectorize_subset(s1, theta)) + list(vectorize_subset(s2, theta))
+      x1 = np.array(x1)
+      x1 = x1.reshape((1, -1))
+
+      x2 = list(vectorize_subset(s2, theta)) + list(vectorize_subset(s1, theta))
+      x2 = np.array(x2)
+      x2 = x2.reshape((1, -1))
+
+      if (clf.predict(x1) == 0):
           p.add_preference(s1, s2)
-      elif clf.predict(x) == 2:
+      elif clf.predict(x1) == 1:
           p.add_preference(s2, s1)
       else:
           print("ERROR !!!! ")
@@ -231,9 +248,9 @@ def train_ordinal(items, function, max_budget, start_budget = 10, n_ext_pts = 20
   return preferences, thetas
       
 
-def predict_ordinal_multiple_thetas(items, preferences, thetas, subsets):
+def predict_ordinal_multiple_thetas(items, preferences, thetas, subsets, bound_model = True, bound_subsets_utilities = False):
   pref = Preferences(items)
-  UFS = [Utility_Fitter(items, theta).set_preferences(preferences).set_model(theta).build_vars().build_preferences_cst() for theta in thetas]
+  UFS = [Utility_Fitter(items, theta).set_preferences(preferences).set_model(theta).build_vars().build_preferences_cst(bound_subsets_utilities = bound_subsets_utilities, bound_model = bound_model) for theta in thetas]
   for s1 in subsets:
     for s2 in subsets:
       if s1 == s2:
@@ -247,9 +264,6 @@ def predict_ordinal_multiple_thetas(items, preferences, thetas, subsets):
       if dominance:
         pref.add_preference(s1, s2)
         print("|", end = "")
-      else:
-        print(".", end= "")
-  print("")
   return pref
 
 
@@ -260,12 +274,12 @@ def get_all_thetas(prf, init_mdl, use_kernel = True):
 
 
 
-def predict_ordinal(items, preferences, theta, subsets):
+def predict_ordinal(items, preferences, theta, subsets, bound_model = True, bound_subsets_utilities = False):
   EPS = EP_Sampler(items, preferences).set_theta(theta)
   pref = Preferences(items)
   if not EPS.empty_polyhedron():
     UF = Utility_Fitter(items, theta)
-    UF.set_preferences(preferences).set_model(theta).build_vars().build_preferences_cst()
+    UF.set_preferences(preferences).set_model(theta).build_vars().build_preferences_cst(bound_model = bound_model, bound_subsets_utilities = bound_subsets_utilities)
     for s1 in subsets:
       for s2 in subsets:
         if s1 == s2:
@@ -274,9 +288,6 @@ def predict_ordinal(items, preferences, theta, subsets):
         if mpr < 0:
           pref.add_preference(s1, s2)
           print("|", end = "")
-        else:
-          print(".", end= "")
-    print("")
   else:
     print("Error polyhedron is empty !")
     return False

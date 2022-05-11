@@ -34,10 +34,14 @@ def sample_subsets(items, size=None, n_subsets=1):
         -n_subsets: The number of subsets to sample.
     """
     subsets = []
-    while len(subsets) < n_subsets and len(subsets) < 2**(len(items)-1):
+    cpt = 0
+    while len(subsets) < n_subsets and len(subsets) < 2**(len(items)):
+        cpt = cpt + 1
         subset = sample_subset(items)
         if subset not in subsets:
             subsets.append(subset)
+        if cpt > 100000:
+            break
     return subsets
 
 
