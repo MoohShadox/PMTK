@@ -195,12 +195,10 @@ def predict_clf(items, clf, theta, subsets):
       x2 = np.array(x2)
       x2 = x2.reshape((1, -1))
 
-      if (clf.predict(x1) == 0):
+      if (clf.predict(x1) == 0 and clf.predict(x2) == 1):
           p.add_preference(s1, s2)
-      elif clf.predict(x1) == 1:
+      elif (clf.predict(x1) == 1 and clf.predict(x2) == 0):
           p.add_preference(s2, s1)
-      else:
-          print("ERROR !!!! ")
   return p
 
 def train_ordinal(items, function, max_budget, start_budget = 10, n_ext_pts = 20):
@@ -258,7 +256,8 @@ def predict_ordinal_multiple_thetas(items, preferences, thetas, subsets, bound_m
       dominance = True
       for UF in UFS:
         mpr = UF.compute_MPR(s1, s2)
-        if mpr > 0:
+        mpr2 = UF.compute_MPR(s2, s1)
+        if mpr <= 0 and mpr2 > 0:
           dominance = False
           break
       if dominance:
